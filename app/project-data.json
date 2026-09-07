@@ -1,0 +1,39 @@
+{
+  "projects": [
+    {
+      "name": "Contributor Onboarding Refresh",
+      "owner": "Mona",
+      "status": "Active",
+      "recentActivity": "Published the updated first-run checklist and assigned review tasks to the docs guild.",
+      "priority": "High"
+    },
+    {
+      "name": "Release Health Automation",
+      "owner": "Ari",
+      "status": "At Risk",
+      "recentActivity": "Alert tuning uncovered flaky deployment checks that need stabilization before the next release.",
+      "priority": "High"
+    },
+    {
+      "name": "API Contract Cleanup",
+      "owner": "Sam",
+      "status": "Blocked",
+      "recentActivity": "Waiting on partner team approval for the final pagination response schema.",
+      "priority": "Medium"
+    },
+    {
+      "name": "Design Token Migration",
+      "owner": "Priya",
+      "status": "Shipped",
+      "recentActivity": "Completed rollout to all dashboard cards and archived the legacy color variables.",
+      "priority": "Low"
+    },
+    {
+      "name": "Telemetry Insights Dashboard",
+      "owner": "Jordan",
+      "status": "Active",
+      "recentActivity": "Connected weekly adoption metrics and added owner-level trend summaries.",
+      "priority": "Medium"
+    }
+  ]
+}

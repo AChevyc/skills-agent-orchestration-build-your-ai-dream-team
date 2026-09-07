@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Pulse</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">⚡</span>
+        <div class="brand-text">
+          <h1 class="header-title">Project Pulse</h1>
+          <p class="header-subtitle">Real-time status, health, and activity across team initiatives</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main container">
+    <section class="dashboard-section" aria-labelledby="dashboard-heading">
+      <div class="section-header">
+        <h2 id="dashboard-heading" class="section-title">Projects Overview</h2>
+        <span class="pulse-indicator" aria-label="Status: Live updates"><span class="pulse-dot"></span> Live</span>
+      </div>
+
+      <!-- Dashboard Grid: Coder will render dynamic project cards here from project-data.json -->
+      <div class="dashboard" id="dashboard" role="region" aria-label="Project cards dashboard" aria-live="polite">
+        <!-- Optional fallback / loading placeholder -->
+        <div class="loading-state">
+          <span class="spinner" aria-hidden="true"></span>
+          <p>Loading projects...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-container">
+      <p>Project Pulse &bull; Internal Team Dashboard</p>
+    </div>
+  </footer>
+
+  <!--
+    ============================================================================
+    PROJECT CARD CONTRACT FOR CODER
+    ============================================================================
+    The Coder agent will fetch data from "project-data.json" and generate
+    `.project-card` elements inside `#dashboard`.
+
+    Expected project data properties:
+      - name: string (e.g. "Core Auth Redesign")
+      - owner: string (e.g. "Mona")
+      - status: string (e.g. "Active", "At Risk", "Blocked", "Shipped")
+      - recentActivity: string (e.g. "Merged PR #104 with OAuth2 refresh tokens")
+      - priority: string (e.g. "High", "Medium", "Low")
+
+    Recommended HTML structure per card:
+    ----------------------------------------------------------------------------
+    <article class="project-card">
+      <div class="project-card-header">
+        <h3 class="project-name">${project.name}</h3>
+        <span class="badge status-badge status-${statusKey}">${project.status}</span>
+      </div>
+      <div class="project-card-body">
+        <div class="project-meta-item">
+          <span class="meta-label">Owner</span>
+          <span class="meta-value project-owner">${project.owner}</span>
+        </div>
+        <div class="project-meta-item">
+          <span class="meta-label">Recent Activity</span>
+          <p class="meta-value recentActivity">${project.recentActivity}</p>
+        </div>
+      </div>
+      <div class="project-card-footer">
+        <span class="meta-label">Priority:</span>
+        <span class="badge priority-badge priority-${priorityKey}">${project.priority}</span>
+      </div>
+    </article>
+    ============================================================================
+  -->
+
+  <!-- Coder script insertion point: append data fetch and render logic below -->
+  <script>
+    const dashboard = document.querySelector("#dashboard");
+    const knownStatuses = new Set(["active", "at-risk", "blocked", "shipped"]);
+    const knownPriorities = new Set(["high", "medium", "low"]);
+
+    function toModifierKey(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function getTextValue(project, propertyName) {
+      const value = project[propertyName];
+
+      if (typeof value !== "string" || value.trim() === "") {
+        return "—";
+      }
+
+      return value;
+    }
+
+    function clearDashboard() {
+      dashboard.replaceChildren();
+    }
+
+    function renderEmptyState() {
+      clearDashboard();
+
+      const emptyState = document.createElement("div");
+      emptyState.className = "empty-state";
+      emptyState.textContent = "No projects yet. Add projects to project-data.json to populate this dashboard.";
+
+      dashboard.append(emptyState);
+    }
+
+    function renderErrorState(error) {
+      clearDashboard();
+
+      const errorState = document.createElement("div");
+      errorState.className = "error-state";
+
+      const errorTitle = document.createElement("p");
+      errorTitle.className = "error-title";
+      errorTitle.textContent = "Unable to load project data.";
+
+      const errorMessage = document.createElement("p");
+      errorMessage.textContent = error.message;
+
+      errorState.append(errorTitle, errorMessage);
+      dashboard.append(errorState);
+    }
+
+    function createProjectCard(project) {
+      const projectName = getTextValue(project, "name");
+      const owner = getTextValue(project, "owner");
+      const status = getTextValue(project, "status");
+      const recentActivity = getTextValue(project, "recentActivity");
+      const priority = getTextValue(project, "priority");
+      const statusKey = toModifierKey(status);
+      const priorityKey = toModifierKey(priority);
+      const statusClass = knownStatuses.has(statusKey) ? `status-${statusKey}` : "status-neutral";
+      const priorityClass = knownPriorities.has(priorityKey) ? `priority-${priorityKey}` : "priority-neutral";
+
+      const card = document.createElement("article");
+      card.className = "project-card";
+
+      const header = document.createElement("div");
+      header.className = "project-card-header";
+
+      const title = document.createElement("h3");
+      title.className = "project-name";
+      title.textContent = projectName;
+
+      const statusBadge = document.createElement("span");
+      statusBadge.classList.add("badge", "status-badge", statusClass);
+      statusBadge.textContent = status;
+
+      header.append(title, statusBadge);
+
+      const body = document.createElement("div");
+      body.className = "project-card-body";
+
+      const ownerItem = document.createElement("div");
+      ownerItem.className = "project-meta-item";
+
+      const ownerLabel = document.createElement("span");
+      ownerLabel.className = "meta-label";
+      ownerLabel.textContent = "Owner";
+
+      const ownerValue = document.createElement("span");
+      ownerValue.className = "meta-value project-owner";
+      ownerValue.textContent = owner;
+
+      ownerItem.append(ownerLabel, ownerValue);
+
+      const activityItem = document.createElement("div");
+      activityItem.className = "project-meta-item";
+
+      const activityLabel = document.createElement("span");
+      activityLabel.className = "meta-label";
+      activityLabel.textContent = "Recent Activity";
+
+      const activityValue = document.createElement("p");
+      activityValue.className = "meta-value recentActivity";
+      activityValue.textContent = recentActivity;
+
+      activityItem.append(activityLabel, activityValue);
+      body.append(ownerItem, activityItem);
+
+      const footer = document.createElement("div");
+      footer.className = "project-card-footer";
+
+      const priorityLabel = document.createElement("span");
+      priorityLabel.className = "meta-label";
+      priorityLabel.textContent = "Priority:";
+
+      const priorityBadge = document.createElement("span");
+      priorityBadge.classList.add("badge", "priority-badge", priorityClass);
+      priorityBadge.textContent = priority;
+
+      footer.append(priorityLabel, priorityBadge);
+      card.append(header, body, footer);
+
+      return card;
+    }
+
+    function renderProjects(projects) {
+      if (!Array.isArray(projects)) {
+        throw new Error("project-data.json must contain a top-level projects array.");
+      }
+
+      if (projects.length === 0) {
+        renderEmptyState();
+        return;
+      }
+
+      clearDashboard();
+      const fragment = document.createDocumentFragment();
+
+      projects.forEach((project) => {
+        fragment.append(createProjectCard(project));
+      });
+
+      dashboard.append(fragment);
+    }
+
+    async function loadProjects() {
+      try {
+        const response = await fetch("project-data.json");
+
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}.`);
+        }
+
+        const data = await response.json();
+        renderProjects(data.projects);
+      } catch (error) {
+        renderErrorState(error);
+      }
+    }
+
+    loadProjects();
+  </script>
+</body>
+</html>
